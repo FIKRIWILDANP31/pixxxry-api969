@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pixxxry API — Dashboard</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+  <style>
+    /* ════ RESET ════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    body { overflow-x: hidden; }
+    img  { max-width: 100%; display: block; }
+    a    { color: inherit; text-decoration: none; }
+    button { cursor: pointer; font-family: inherit; }
+
+    /* ════ TOKENS ════ */
+    :root {
+      --ff: 'Outfit', system-ui, sans-serif;
+      --fm: 'JetBrains Mono', monospace;
+
+      --bg:      #f6f7f9;
+      --bg2:     #ffffff;
+      --bg3:     #eef0f4;
+      --surface: #ffffff;
+      --bdr:     rgba(0,0,0,.08);
+      --bdr2:    rgba(0,0,0,.12);
+      --t1:      #0c0e12;
+      --t2:      #3b404f;
+      --t3:      #8590a3;
+      --acc:     #0c0e12;
+      --acc-fg:  #ffffff;
+
+      --get-bg:  #dcfce7; --get-fg:  #15803d;
+      --post-bg: #dbeafe; --post-fg: #1d4ed8;
+      --free-bg: #f1f5f9; --free-fg: #475569;
+      --new-bg:  #fef3c7; --new-fg:  #92400e;
+      --pro-bg:  #fce7f3; --pro-fg:  #9d174d;
+
+      --green:   #22c55e;
+      --red:     #ef4444;
+      --yellow:  #f59e0b;
+      --blue:    #3b82f6;
+
+      --nav-bg:  rgba(246,247,249,.9);
+      --sh1: 0 1px 3px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.04);
+      --sh2: 0 4px 16px rgba(0,0,0,.06),0 2px 6px rgba(0,0,0,.04);
+      --sh3: 0 16px 48px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.04);
+      --r1: 8px; --r2: 14px; --r3: 20px; --r4: 28px;
+      color-scheme: light;
+    }
+
+    html.dark {
+      --bg:      #080a0e;
+      --bg2:     #10121a;
+      --bg3:     #161921;
+      --surface: #10121a;
+      --bdr:     rgba(255,255,255,.07);
+      --bdr2:    rgba(255,255,255,.11);
+      --t1:      #f2f3f6;
+      --t2:      #9ba3b8;
+      --t3:      #525970;
+      --acc:     #f2f3f6;
+      --acc-fg:  #080a0e;
+      
+      --get-bg:  rgba(21,128,61,.16); --get-fg:  #4ade80;
+      --post-bg: rgba(29,78,216,.16); --post-fg: #60a5fa;
+      --free-bg: rgba(255,255,255,.06); --free-fg: #94a3b8;
+      --new-bg:  rgba(146,64,14,.18);  --new-fg:  #f59e0b;
+      --pro-bg:  rgba(157,23,77,.18);  --pro-fg:  #f472b6;
+      
+      --nav-bg:  rgba(8,10,14,.88);
+      --sh1: 0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2);
+      --sh2: 0 4px 16px rgba(0,0,0,.32),0 2px 6px rgba(0,0,0,.2);
+      --sh3: 0 16px 48px rgba(0,0,0,.44),0 4px 12px rgba(0,0,0,.24);
+      color-scheme: dark;
+    }
+
+    body {
+      font-family: var(--ff);
+      background: var(--bg);
+      color: var(--t1);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      transition: background .35s ease, color .35s ease;
+    }
+
+    /* ═══ LAYOUT ═══ */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ═══ SIDEBAR ═══ */
+    .sidebar {
+      width: 248px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--bdr);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 50;
+      transition: transform .3s ease, background .35s;
+      overflow-y: auto;
+    }
+
+    .sb-head {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--bdr);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .sb-logo {
+      width: 36px; height: 36px;
+      border-radius: var(--r1);
+      border: 1px solid var(--bdr2);
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .sb-title { font-size: .9rem; font-weight: 800; color: var(--t1); letter-spacing: -.02em; }
+    .sb-sub   { font-size: .68rem; color: var(--t3); }
+
+    .sb-nav { padding: 12px 12px; flex: 1; }
+
+    .sb-section-label {
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--t3);
+      padding: 8px 8px 6px;
+      margin-top: 8px;
+    }
+
+    .sb-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: var(--r1);
+      font-size: .86rem;
+      font-weight: 500;
+      color: var(--t2);
+      transition: background .15s, color .15s;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      text-decoration: none;
+    }
+
+    .sb-item i { width: 16px; text-align: center; font-size: .88rem; color: var(--t3); flex-shrink: 0; transition: color .15s; }
+    .sb-item:hover { background: var(--bg3); color: var(--t1); }
+    .sb-item:hover i { color: var(--t2); }
+    .sb-item.active { background: var(--acc); color: var(--acc-fg); font-weight: 700; }
+    .sb-item.active i { color: var(--acc-fg); opacity: .8; }
+
+    .sb-badge {
+      margin-left: auto;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: .62rem;
+      font-weight: 700;
+      background: var(--get-bg);
+      color: var(--get-fg);
+    }
+
+    .sb-foot {
+      padding: 16px 12px;
+      border-top: 1px solid var(--bdr);
+      flex-shrink: 0;
+    }
+
+    .sb-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--r2);
+      background: var(--bg3);
+      border: 1px solid var(--bdr);
+    }
+
+    .sb-avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--acc);
+      color: var(--acc-fg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .82rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .sb-uname { font-size: .84rem; font-weight: 700; color: var(--t1); }
+    .sb-plan  {
+      font-size: .65rem;
+      color: var(--t3);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .sb-plan .dot-live {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%,100% { opacity:1; transform: scale(1); }
+      50%      { opacity:.5; transform: scale(.7); }
+    }
+
+    /* ═══ MAIN ═══ */
+    .main {
+      flex: 1;
+      margin-left: 248px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      transition: margin-left .3s ease;
+    }
+
+    /* ═══ TOP BAR ═══ */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: var(--nav-bg);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--bdr);
+      padding: 0 24px;
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      transition: background .3s;
+    }
+
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+
+    .sidebar-toggle {
+      width: 36px; height: 36px;
+      border-radius: var(--r1);
+      border: none;
+      background: transparent;
+      color: var(--t2);
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, color .15s, transform .2s;
+    }
+    .sidebar-toggle:hover { background: var(--bg3); color: var(--t1); }
+    .sidebar-toggle:active { transform: scale(.9); }
+
+    .page-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--t1);
+      letter-spacing: -.02em;
+    }
+    .page-sub { font-size: .75rem; color: var(--t3); font-weight: 500; }
+
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+
+    .status-pill {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(34,197,94,.1);
+      border: 1px solid rgba(34,197,94,.2);
+      font-size: .76rem;
+      font-weight: 600;
+      color: var(--green);
+    }
+    @media(min-width: 640px) { .status-pill { display: flex; } }
+
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse-dot 1.5s infinite;
+    }
+
+    .ico-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: var(--t2);
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, color .15s, transform .2s;
+    }
+    .ico-btn:hover { background: var(--bg3); color: var(--t1); }
+    .ico-btn:active { transform: scale(.92); }
+
+    /* ═══ CONTENT ═══ */
+    .content {
+      padding: 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ═══ STATS GRID ═══ */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    @media(min-width:1100px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r3);
+      box-shadow: var(--sh1);
+      padding: 20px 22px;
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: var(--sh2); }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      opacity: .06;
+      transform: translate(25px, -25px);
+    }
+
+    .stat-card.green::before  { background: var(--green); }
+    .stat-card.blue::before   { background: var(--blue); }
+    .stat-card.yellow::before { background: var(--yellow); }
+    .stat-card.red::before    { background: var(--red); }
+
+    .stat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+
+    .stat-icon {
+      width: 38px; height: 38px;
+      border-radius: var(--r1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .92rem;
+    }
+    .stat-icon.green  { background: rgba(34,197,94,.12);  color: var(--green); }
+    .stat-icon.blue   { background: rgba(59,130,246,.12); color: var(--blue); }
+    .stat-icon.yellow { background: rgba(245,158,11,.12); color: var(--yellow); }
+    .stat-icon.red    { background: rgba(239,68,68,.12);  color: var(--red); }
+
+    .stat-trend {
+      font-size: .72rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .stat-trend.up   { color: var(--green); }
+    .stat-trend.down { color: var(--red); }
+
+    .stat-val {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -.04em;
+      color: var(--t1);
+      line-height: 1;
+      font-family: var(--fm);
+    }
+
+    .stat-label { font-size: .78rem; color: var(--t3); margin-top: 6px; font-weight: 600; }
+
+    /* ═══ API KEY PANEL ═══ */
+    .apikey-panel {
+      background: var(--surface);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r3);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--sh1);
+    }
+    @media(min-width: 768px) {
+      .apikey-panel { flex-direction: row; align-items: center; justify-content: space-between; }
+    }
+
+    .apikey-info { display: flex; flex-direction: column; }
+    .apikey-title { font-size: .9rem; font-weight: 700; color: var(--t1); }
+    .apikey-sub { font-size: .75rem; color: var(--t3); }
+
+    .apikey-box {
+      background: var(--bg);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r2);
+      padding: 8px 12px 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      max-width: 500px;
+    }
+
+    .apikey-val {
+      font-family: var(--fm);
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--t1);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      letter-spacing: .05em;
+    }
+
+    .apikey-btn {
+      width: 32px; height: 32px;
+      border-radius: var(--r1);
+      border: 1px solid var(--bdr2);
+      background: var(--surface);
+      color: var(--t2);
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s;
+    }
+    .apikey-btn:hover { background: var(--bg3); color: var(--t1); }
+    .apikey-btn:active { transform: scale(.92); }
+
+    /* ═══ CHARTS & TABLES ROW ═══ */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    @media(min-width:1024px) { .charts-row { grid-template-columns: 2fr 1fr; } }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r3);
+      box-shadow: var(--sh1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-head {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--bdr);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-title { font-size: .92rem; font-weight: 700; color: var(--t1); display: flex; align-items: center; gap: 8px; }
+    .panel-title i { color: var(--t3); font-size: .82rem; }
+    
+    .panel-body { padding: 18px 20px; flex: 1; }
+
+    .chart-wrap { position: relative; height: 260px; width: 100%; }
+
+    /* ═══ ENDPOINT TABLE ═══ */
+    .table-wrap { overflow-x: auto; margin: -18px -20px; }
+    .ep-table { width: 100%; border-collapse: collapse; min-width: 400px; }
+    .ep-table th {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--t3);
+      padding: 12px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--bdr);
+      background: var(--bg);
+    }
+    .ep-table td {
+      padding: 12px 20px;
+      font-size: .83rem;
+      color: var(--t2);
+      border-bottom: 1px solid var(--bdr);
+      transition: background .15s;
+    }
+    .ep-table tbody tr:hover td { background: var(--bg3); }
+    .ep-name { font-weight: 700; color: var(--t1); }
+    .ep-path { font-family: var(--fm); font-size: .72rem; color: var(--t3); display: block; margin-top: 2px; }
+
+    /* ═══ BOTTOM ROW ═══ */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    @media(min-width:1024px) { .bottom-row { grid-template-columns: 1fr; } }
+
+    /* ═══ LIVE LOGGER ═══ */
+    .logger-wrap {
+      display: flex;
+      flex-direction: column;
+      height: 340px;
+    }
+
+    .logger-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .log-filter-btn {
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--bdr2);
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--t2);
+      background: transparent;
+      transition: all .15s;
+    }
+    .log-filter-btn.active, .log-filter-btn:hover { background: var(--acc); color: var(--acc-fg); border-color: var(--acc); }
+
+    .log-clear {
+      margin-left: auto;
+      padding: 4px 10px;
+      border-radius: var(--r1);
+      border: 1px solid var(--bdr2);
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--t3);
+      background: transparent;
+      transition: all .15s;
+    }
+    .log-clear:hover { background: var(--bg3); color: var(--t1); }
+
+    .logger-scroll {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--bg);
+      border-radius: var(--r2);
+      border: 1px solid var(--bdr);
+      margin-top: 12px;
+      font-family: var(--fm);
+      font-size: .73rem;
+      line-height: 1.6;
+      padding: 10px;
+    }
+    .logger-scroll::-webkit-scrollbar { width: 6px; }
+    .logger-scroll::-webkit-scrollbar-track { background: transparent; }
+    .logger-scroll::-webkit-scrollbar-thumb { background: var(--bdr2); border-radius: 6px; }
+
+    .log-entry {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      margin-bottom: 4px;
+      animation: logSlideIn .3s cubic-bezier(0.25, 1, 0.5, 1) both;
+    }
+    @keyframes logSlideIn {
+      from { opacity: 0; transform: translateX(-10px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .log-entry:hover { background: var(--bg3); }
+    .log-time   { color: var(--t3); flex-shrink: 0; width: 65px; }
+    .log-method { flex-shrink: 0; width: 40px; font-weight: 700; }
+    .log-status { flex-shrink: 0; width: 35px; font-weight: 700; }
+    .log-path   { color: var(--t1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    .log-ms     { color: var(--t3); flex-shrink: 0; text-align: right; }
+
+    .log-entry.type-info  .log-status { color: var(--green); }
+    .log-entry.type-error .log-status { color: var(--red); }
+    .log-entry.type-error { background: rgba(239,68,68,.05); border: 1px solid rgba(239,68,68,.1); }
+    .log-method.get  { color: var(--blue); }
+    .log-method.post { color: var(--yellow); }
+
+    /* ═══ RESPONSIVE SIDEBAR ═══ */
+    @media(max-width: 1023px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); box-shadow: var(--sh3); }
+      .main { margin-left: 0; }
+      .overlay {
+        display: none;
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,.5);
+        z-index: 45;
+        backdrop-filter: blur(4px);
+      }
+      .overlay.open { display: block; }
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="overlay" id="sidebarOverlay"></div>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sb-head">
+        <img src="https://g.top4top.io/p_3762bm1y70.jpg" alt="Logo" class="sb-logo" />
+        <div>
+          <div class="sb-title">Pixxxry API</div>
+          <div class="sb-sub">Developer Panel</div>
+        </div>
+      </div>
+
+      <div class="sb-nav">
+        <div class="sb-section-label">Main Menu</div>
+        <a href="#" class="sb-item active">
+          <i class="fa-solid fa-chart-pie"></i> Dashboard
+        </a>
+        <a href="#" class="sb-item">
+          <i class="fa-solid fa-code"></i> Endpoints
+        </a>
+        <a href="#" class="sb-item">
+          <i class="fa-solid fa-key"></i> API Keys
+        </a>
+        
+        <div class="sb-section-label">Account</div>
+        <a href="#" class="sb-item">
+          <i class="fa-solid fa-wallet"></i> Billing
+          <span class="sb-badge">PRO</span>
+        </a>
+        <a href="#" class="sb-item">
+          <i class="fa-solid fa-gear"></i> Settings
+        </a>
+        <a href="#" class="sb-item">
+          <i class="fa-solid fa-book"></i> Documentation
+        </a>
+      </div>
+
+      <div class="sb-foot">
+        <div class="sb-user">
+          <div class="sb-avatar">DK</div>
+          <div>
+            <div class="sb-uname">DevKidd</div>
+            <div class="sb-plan">
+              <div class="dot-live"></div>
+              Premium Plan
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div>
+            <div class="page-title">Overview</div>
+            <div class="page-sub">Dashboard / Overview</div>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <div class="status-pill">
+            <div class="live-dot"></div> System Operational
+          </div>
+          <button class="ico-btn" id="themeToggle" aria-label="Ganti tema">
+            <i class="fa-solid fa-moon" id="themeIcon"></i>
+          </button>
+          <button class="ico-btn">
+            <i class="fa-solid fa-bell"></i>
+          </button>
+        </div>
+      </header>
+
+      <div class="content">
+        
+        <div class="apikey-panel">
+          <div class="apikey-info">
+            <div class="apikey-title">API Key Aktif</div>
+            <div class="apikey-sub">Gunakan key ini untuk otentikasi request via Header atau Parameter.</div>
+          </div>
+          <div class="apikey-box">
+            <div class="apikey-val" id="apiKeyText">px_live_8f92jK82mNq01LzpW45xYz</div>
+            <button class="apikey-btn" id="copyApiKey" title="Copy API Key">
+              <i class="fa-regular fa-copy"></i>
+            </button>
+            <button class="apikey-btn" id="toggleApiKey" title="Show/Hide">
+              <i class="fa-regular fa-eye-slash" id="eyeIconKey"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card blue">
+            <div class="stat-top">
+              <div class="stat-icon blue"><i class="fa-solid fa-server"></i></div>
+              <div class="stat-trend up"><i class="fa-solid fa-arrow-trend-up"></i> +12.5%</div>
+            </div>
+            <div class="stat-val">1.2M</div>
+            <div class="stat-label">Total Requests (Bulan ini)</div>
+          </div>
+
+          <div class="stat-card green">
+            <div class="stat-top">
+              <div class="stat-icon green"><i class="fa-solid fa-check-double"></i></div>
+              <div class="stat-trend up"><i class="fa-solid fa-arrow-trend-up"></i> +0.2%</div>
+            </div>
+            <div class="stat-val">99.8%</div>
+            <div class="stat-label">Success Rate</div>
+          </div>
+
+          <div class="stat-card yellow">
+            <div class="stat-top">
+              <div class="stat-icon yellow"><i class="fa-solid fa-bolt"></i></div>
+              <div class="stat-trend down"><i class="fa-solid fa-arrow-trend-down"></i> -15ms</div>
+            </div>
+            <div class="stat-val">48ms</div>
+            <div class="stat-label">Avg. Latency</div>
+          </div>
+
+          <div class="stat-card red">
+            <div class="stat-top">
+              <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              <div class="stat-trend down"><i class="fa-solid fa-arrow-trend-down"></i> -1.5%</div>
+            </div>
+            <div class="stat-val">0.2%</div>
+            <div class="stat-label">Error Rate (4xx & 5xx)</div>
+          </div>
+        </div>
+
+        <div class="charts-row">
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title"><i class="fa-solid fa-chart-line"></i> Traffic Overview</div>
+              <select style="background:var(--bg3); border:1px solid var(--bdr); border-radius:6px; color:var(--t2); padding:4px 8px; font-size:.75rem;">
+                <option>7 Hari Terakhir</option>
+                <option>Bulan Ini</option>
+              </select>
+            </div>
+            <div class="panel-body">
+              <div class="chart-wrap">
+                <canvas id="trafficChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title"><i class="fa-solid fa-fire"></i> Top Endpoints</div>
+            </div>
+            <div class="panel-body" style="padding:0;">
+              <div class="table-wrap">
+                <table class="ep-table">
+                  <thead>
+                    <tr>
+                      <th>Endpoint</th>
+                      <th>Requests</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div class="ep-name">TikTok Downloader</div>
+                        <div class="ep-path">/api/downloader/tiktok</div>
+                      </td>
+                      <td style="font-family:var(--fm); font-weight:600; color:var(--t1);">452K</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="ep-name">AI Chatbot</div>
+                        <div class="ep-path">/api/ai/chat</div>
+                      </td>
+                      <td style="font-family:var(--fm); font-weight:600; color:var(--t1);">310K</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="ep-name">Pinterest Search</div>
+                        <div class="ep-path">/api/search/pinterest</div>
+                      </td>
+                      <td style="font-family:var(--fm); font-weight:600; color:var(--t1);">185K</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="ep-name">OCR Tools</div>
+                        <div class="ep-path">/api/tools/ocr</div>
+                      </td>
+                      <td style="font-family:var(--fm); font-weight:600; color:var(--t1);">98K</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-row">
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title"><i class="fa-solid fa-terminal"></i> Live Request Logs</div>
+              <div class="status-pill" style="font-size: 0.65rem; padding: 4px 8px;">
+                <div class="live-dot"></div> Live Streaming
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="logger-wrap">
+                <div class="logger-toolbar">
+                  <button class="log-filter-btn active">All Logs</button>
+                  <button class="log-filter-btn">Errors Only</button>
+                  <button class="log-clear" id="clearLogs"><i class="fa-solid fa-trash-can"></i> Clear</button>
+                </div>
+                <div class="logger-scroll" id="logContainer">
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function(){
+      'use strict';
+
+      /* ═══ TEMA (DARK/LIGHT) ═══ */
+      const html = document.documentElement;
+      const thBtn = document.getElementById('themeToggle');
+      const thIco = document.getElementById('themeIcon');
+
+      function applyTheme(t){
+        if(t==='dark'){ html.classList.add('dark'); thIco.className='fa-solid fa-sun'; }
+        else { html.classList.remove('dark'); thIco.className='fa-solid fa-moon'; }
+        updateChartTheme();
+      }
+
+      applyTheme(localStorage.getItem('theme')||'light');
+      thBtn.addEventListener('click',function(){
+        const next = html.classList.contains('dark')?'light':'dark';
+        localStorage.setItem('theme',next);
+        applyTheme(next);
+      });
+
+      /* ═══ SIDEBAR MOBILE ═══ */
+      const sidebar = document.getElementById('sidebar');
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      const overlay = document.getElementById('sidebarOverlay');
+
+      sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('open');
+      });
+      overlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
+      });
+
+      /* ═══ API KEY TOGGLE & COPY ═══ */
+      const apiKeyVal = document.getElementById('apiKeyText');
+      const toggleApiKey = document.getElementById('toggleApiKey');
+      const copyApiKey = document.getElementById('copyApiKey');
+      const eyeIconKey = document.getElementById('eyeIconKey');
+      const realKey = "px_live_8f92jK82mNq01LzpW45xYz";
+      const maskedKey = "••••••••••••••••••••••••••••••";
+      
+      let isKeyHidden = true;
+      apiKeyVal.textContent = maskedKey;
+
+      toggleApiKey.addEventListener('click', () => {
+        isKeyHidden = !isKeyHidden;
+        apiKeyVal.textContent = isKeyHidden ? maskedKey : realKey;
+        eyeIconKey.className = isKeyHidden ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+      });
+
+      copyApiKey.addEventListener('click', () => {
+        navigator.clipboard.writeText(realKey);
+        copyApiKey.innerHTML = '<i class="fa-solid fa-check" style="color:var(--green)"></i>';
+        setTimeout(() => {
+          copyApiKey.innerHTML = '<i class="fa-regular fa-copy"></i>';
+        }, 2000);
+      });
+
+      /* ═══ CHART.JS SETUP ═══ */
+      let trafficChart;
+      function initChart() {
+        const ctx = document.getElementById('trafficChart').getContext('2d');
+        const isDark = html.classList.contains('dark');
+        const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+        const textColor = isDark ? '#9ba3b8' : '#8590a3';
+
+        trafficChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+              label: 'Requests',
+              data: [120000, 190000, 150000, 220000, 180000, 250000, 310000],
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              borderWidth: 2,
+              pointBackgroundColor: '#3b82f6',
+              pointRadius: 3,
+              fill: true,
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: textColor, font: { family: 'Outfit' } } },
+              y: { grid: { color: gridColor }, ticks: { color: textColor, font: { family: 'Outfit' } } }
+            }
+          }
+        });
+      }
+
+      function updateChartTheme() {
+        if(!trafficChart) return;
+        const isDark = html.classList.contains('dark');
+        trafficChart.options.scales.x.ticks.color = isDark ? '#9ba3b8' : '#8590a3';
+        trafficChart.options.scales.y.ticks.color = isDark ? '#9ba3b8' : '#8590a3';
+        trafficChart.options.scales.y.grid.color = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+        trafficChart.update();
+      }
+      initChart();
+
+      /* ═══ LIVE LOGGER SIMULATION ═══ */
+      const logContainer = document.getElementById('logContainer');
+      const endpoints = ['/api/downloader/tiktok', '/api/ai/chat', '/api/search/pinterest', '/api/tools/ocr', '/api/anime/random'];
+      const methods = ['GET', 'POST', 'GET', 'POST', 'GET'];
+      const statuses = [200, 200, 200, 404, 500, 200, 200];
+
+      function addLog() {
+        const d = new Date();
+        const time = d.getHours().toString().padStart(2,'0') + ':' + 
+                     d.getMinutes().toString().padStart(2,'0') + ':' + 
+                     d.getSeconds().toString().padStart(2,'0');
+        
+        const rIndex = Math.floor(Math.random() * endpoints.length);
+        const ep = endpoints[rIndex];
+        const meth = methods[rIndex];
+        const stat = statuses[Math.floor(Math.random() * statuses.length)];
+        const ms = Math.floor(Math.random() * 150) + 10;
+        
+        let type = 'info';
+        if(stat === 404) type = 'warn';
+        if(stat === 500) type = 'error';
+
+        const el = document.createElement('div');
+        el.className = `log-entry type-${type}`;
+        el.innerHTML = `
+          <span class="log-time">${time}</span>
+          <span class="log-method ${meth.toLowerCase()}">${meth}</span>
+          <span class="log-status">${stat}</span>
+          <span class="log-path">${ep}</span>
+          <span class="log-ms">${ms}ms</span>
+        `;
+        
+        logContainer.prepend(el);
+        if(logContainer.children.length > 50) {
+          logContainer.removeChild(logContainer.lastChild);
+        }
+      }
+
+      setInterval(addLog, 1200);
+
+      document.getElementById('clearLogs').addEventListener('click', () => {
+        logContainer.innerHTML = '';
+      });
+
+    })();
+  </script>
+</body>
+</html>

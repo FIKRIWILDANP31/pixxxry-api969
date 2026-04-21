@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="id" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register — Pixxxry API</title>
+  <meta name="description" content="Buat akun Pixxxry API untuk mendapatkan akses ke endpoint premium dan dashboard." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+  <style>
+    /* ════ RESET ════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    body { overflow-x: hidden; }
+    img  { max-width: 100%; display: block; }
+    a    { color: inherit; text-decoration: none; }
+    button { cursor: pointer; font-family: inherit; }
+
+    /* ════ TOKENS (Sama dengan index.html) ════ */
+    :root {
+      --ff: 'Outfit', system-ui, sans-serif;
+      --fm: 'JetBrains Mono', monospace;
+
+      --bg:      #f6f7f9;
+      --bg2:     #ffffff;
+      --bg3:     #eef0f4;
+      --surface: #ffffff;
+      --bdr:     rgba(0,0,0,.08);
+      --bdr2:    rgba(0,0,0,.12);
+      --t1:      #0c0e12;
+      --t2:      #3b404f;
+      --t3:      #8590a3;
+      --acc:     #0c0e12;
+      --acc-fg:  #ffffff;
+      --ring:    rgba(12,14,18,.15);
+
+      --sh1: 0 1px 3px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.04);
+      --sh2: 0 4px 16px rgba(0,0,0,.06),0 2px 6px rgba(0,0,0,.04);
+      --sh3: 0 16px 48px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.04);
+      
+      --r1: 8px; --r2: 14px; --r3: 20px; --r4: 28px;
+      color-scheme: light;
+    }
+
+    html.dark {
+      --bg:      #080a0e;
+      --bg2:     #10121a;
+      --bg3:     #161921;
+      --surface: #10121a;
+      --bdr:     rgba(255,255,255,.07);
+      --bdr2:    rgba(255,255,255,.11);
+      --t1:      #f2f3f6;
+      --t2:      #9ba3b8;
+      --t3:      #525970;
+      --acc:     #f2f3f6;
+      --acc-fg:  #080a0e;
+      --ring:    rgba(242,243,246,.15);
+
+      --sh1: 0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2);
+      --sh2: 0 4px 16px rgba(0,0,0,.32),0 2px 6px rgba(0,0,0,.2);
+      --sh3: 0 16px 48px rgba(0,0,0,.44),0 4px 12px rgba(0,0,0,.24);
+      color-scheme: dark;
+    }
+
+    body {
+      font-family: var(--ff);
+      background: var(--bg);
+      color: var(--t1);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      transition: background .35s ease, color .35s ease;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* ════ BACKGROUND GRID ════ */
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, var(--bdr) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--bdr) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: radial-gradient(ellipse 90% 72% at 50% 0%, black 36%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 90% 72% at 50% 0%, black 36%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ════ NAV ════ */
+    .top-nav {
+      position: relative;
+      z-index: 5;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 22px 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      width: 34px; height: 34px;
+      border-radius: var(--r1);
+      object-fit: cover;
+      border: 1px solid var(--bdr2);
+    }
+
+    .brand-name {
+      font-size: .92rem;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      color: var(--t1);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ico-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: var(--t2);
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, color .15s, transform 0.2s;
+    }
+    .ico-btn:hover { background: var(--bg3); color: var(--t1); }
+    .ico-btn:active { transform: scale(0.92); }
+
+    /* ════ AUTH LAYOUT ════ */
+    .page {
+      position: relative;
+      z-index: 1;
+      min-height: calc(100vh - 82px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 16px 50px;
+    }
+
+    .auth-shell {
+      width: 100%;
+      max-width: 520px;
+      animation: fadeUp .6s cubic-bezier(0.25,1,0.5,1) both;
+    }
+
+    .hero-head {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .hero-title {
+      font-size: clamp(1.8rem, 4vw, 2.2rem);
+      font-weight: 900;
+      letter-spacing: -.04em;
+      line-height: 1.04;
+      color: var(--t1);
+    }
+
+    .hero-sub {
+      margin-top: 8px;
+      color: var(--t3);
+      font-size: .95rem;
+      line-height: 1.6;
+    }
+
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--bdr2);
+      border-radius: var(--r4);
+      box-shadow: var(--sh3);
+      overflow: hidden;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--bdr);
+      background: var(--bg2);
+    }
+
+    .tab-link {
+      position: relative;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: var(--t3);
+      font-size: .95rem;
+      font-weight: 700;
+      transition: background .2s, color .2s;
+    }
+
+    .tab-link:hover {
+      color: var(--t1);
+      background: var(--bg3);
+    }
+
+    .tab-link.active {
+      color: var(--t1);
+      background: var(--surface);
+    }
+
+    .tab-link.active::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; bottom: -1px;
+      height: 3px;
+      background: var(--t1);
+      border-radius: 3px 3px 0 0;
+    }
+
+    .auth-body {
+      padding: 32px 28px;
+    }
+
+    /* ════ SOCIAL BUTTONS ════ */
+    .social-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .social-btn {
+      width: 100%;
+      min-height: 54px;
+      border-radius: var(--r2);
+      border: 1px solid var(--bdr2);
+      background: var(--bg);
+      color: var(--t1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: .95rem;
+      font-weight: 700;
+      box-shadow: var(--sh1);
+      transition: background .2s, transform .2s;
+    }
+
+    .social-btn:hover {
+      background: var(--bg3);
+      transform: translateY(-1px);
+    }
+    
+    .social-btn:active {
+      transform: scale(0.98);
+    }
+
+    .google-icon {
+      width: 22px; height: 22px;
+      object-fit: contain;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 24px 0;
+      color: var(--t3);
+      font-size: .85rem;
+      font-weight: 600;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--bdr);
+    }
+
+    /* ════ FORM ════ */
+    .form-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .form-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--t2);
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap i.left-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--t3);
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    .input-wrap button {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 36px; height: 36px;
+      border: none;
+      background: transparent;
+      color: var(--t3);
+      border-radius: var(--r1);
+      transition: background .2s, color .2s;
+    }
+
+    .input-wrap button:hover {
+      background: var(--bg3);
+      color: var(--t1);
+    }
+
+    .form-control {
+      width: 100%;
+      height: 52px;
+      border-radius: var(--r2);
+      border: 1px solid var(--bdr2);
+      background: var(--bg);
+      color: var(--t1);
+      font-family: inherit;
+      font-size: .95rem;
+      outline: none;
+      padding: 0 16px 0 48px;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+
+    .form-control.password {
+      padding-right: 48px;
+    }
+
+    .form-control::placeholder {
+      color: var(--t3);
+    }
+
+    .form-control:focus {
+      background: var(--surface);
+      border-color: var(--t3);
+      box-shadow: 0 0 0 3px var(--ring);
+    }
+
+    /* ════ BUTTON ANIMATION (Dari index.html) ════ */
+    .btn-prim {
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      margin-top: 10px;
+      width: 100%;
+      min-height: 54px;
+      border-radius: var(--r2);
+      background: var(--acc);
+      color: var(--acc-fg);
+      font-size: .98rem;
+      font-weight: 700;
+      border: none;
+      box-shadow: var(--sh2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: opacity .2s, transform .3s cubic-bezier(.34,1.56,.64,1);
+    }
+
+    .btn-prim::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 50%; height: 100%;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.25), transparent);
+      transform: skewX(-20deg);
+      transition: all 0.6s ease;
+      z-index: -1;
+    }
+
+    .btn-prim:hover {
+      opacity: .88; 
+      transform: translateY(-2px);
+    }
+
+    .btn-prim:hover::after {
+      left: 150%;
+    }
+
+    .btn-prim:active {
+      transform: scale(0.97) translateY(0);
+    }
+
+    /* ════ FOOTER / NOTES ════ */
+    .tos {
+      margin-top: 22px;
+      text-align: center;
+      color: var(--t3);
+      font-size: .85rem;
+      line-height: 1.6;
+    }
+
+    .tos a {
+      color: var(--t2);
+      font-weight: 700;
+      transition: color .2s;
+    }
+
+    .tos a:hover {
+      color: var(--t1);
+    }
+
+    .small-note {
+      margin-top: 16px;
+      text-align: center;
+      font-size: .88rem;
+      color: var(--t3);
+    }
+
+    .small-note a {
+      color: var(--t1);
+      font-weight: 700;
+    }
+
+    /* ════ ANIMATIONS ════ */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px) scale(0.98); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    @media (max-width: 640px) {
+      .auth-body { padding: 24px 20px; }
+      .hero-title { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="hero-grid"></div>
+
+  <div class="top-nav">
+    <a href="/" class="brand">
+      <img src="https://g.top4top.io/p_3762bm1y70.jpg" alt="Pixxxry API Logo" class="brand-logo" />
+      <div class="brand-name">Pixxxry API</div>
+    </a>
+
+    <div class="nav-actions">
+      <button class="ico-btn" id="themeToggle" aria-label="Ganti Tema">
+        <i class="fa-solid fa-moon" id="themeIcon"></i>
+      </button>
+      <a href="/" class="ico-btn" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </div>
+  </div>
+
+  <main class="page">
+    <div class="auth-shell">
+      <div class="hero-head">
+        <h1 class="hero-title">Mulai Eksekusi Project</h1>
+        <p class="hero-sub">Daftar sekarang untuk mendapatkan akses ke 300+ endpoint premium kami.</p>
+      </div>
+
+      <section class="auth-card">
+        <div class="tabs">
+          <a href="/login" class="tab-link">
+            <i class="fa-solid fa-right-to-bracket"></i>
+            <span>Login</span>
+          </a>
+          <a href="/register" class="tab-link active">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Register</span>
+          </a>
+        </div>
+
+        <div class="auth-body">
+          <div class="social-stack">
+            <a href="/auth/google" class="social-btn">
+              <img class="google-icon" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+              <span>Daftar dengan Google</span>
+            </a>
+            <a href="/auth/github" class="social-btn">
+              <i class="fa-brands fa-github" style="font-size: 1.3rem;"></i>
+              <span>Daftar dengan GitHub</span>
+            </a>
+          </div>
+
+          <div class="divider">atau dengan email</div>
+
+          <form action="/api/auth/register" method="POST" class="form-grid" id="registerForm">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-at left-icon"></i>
+                <input type="text" id="username" name="username" class="form-control" placeholder="username_kamu" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-envelope left-icon"></i>
+                <input type="email" id="email" name="email" class="form-control" placeholder="nama@email.com" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-lock left-icon"></i>
+                <input type="password" id="password" name="password" class="form-control password" placeholder="Min. 8 karakter" minlength="8" required />
+                <button type="button" id="togglePassword" aria-label="Lihat password">
+                  <i class="fa-regular fa-eye" id="eyeIcon1"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="confirmPassword">Konfirmasi Password</label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-shield-check left-icon"></i>
+                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control password" placeholder="Ulangi password" minlength="8" required />
+                <button type="button" id="toggleConfirmPassword" aria-label="Lihat password">
+                  <i class="fa-regular fa-eye" id="eyeIcon2"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group" style="display: flex; justify-content: center; margin-top: 4px;">
+              <div class="cf-turnstile" data-sitekey="0x4AAAAAADATUahRHegD54ph" data-theme="auto"></div>
+            </div>
+
+            <button type="submit" class="btn-prim">
+              Buat Akun <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </form>
+
+          <p class="tos">
+            Dengan mendaftar, kamu menyetujui<br>
+            <a href="/terms">Syarat & Ketentuan</a> dan <a href="/privacy">Kebijakan Privasi</a> kami.
+          </p>
+
+          <p class="small-note">
+            Sudah punya akun? <a href="/login">Masuk di sini</a>
+          </p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+      const html = document.documentElement;
+      const themeToggle = document.getElementById('themeToggle');
+      const themeIcon = document.getElementById('themeIcon');
+
+      function applyTheme(t) {
+        if (t === 'dark') {
+          html.classList.add('dark');
+          themeIcon.className = 'fa-solid fa-sun';
+        } else {
+          html.classList.remove('dark');
+          themeIcon.className = 'fa-solid fa-moon';
+        }
+      }
+
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      applyTheme(savedTheme);
+
+      themeToggle.addEventListener('click', function () {
+        const next = html.classList.contains('dark') ? 'light' : 'dark';
+        localStorage.setItem('theme', next);
+        applyTheme(next);
+      });
+
+      function bindToggle(inputId, buttonId, iconId) {
+        const input = document.getElementById(inputId);
+        const button = document.getElementById(buttonId);
+        const icon = document.getElementById(iconId);
+
+        button.addEventListener('click', function () {
+          const isPassword = input.type === 'password';
+          input.type = isPassword ? 'text' : 'password';
+          icon.className = isPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+        });
+      }
+
+      bindToggle('password', 'togglePassword', 'eyeIcon1');
+      bindToggle('confirmPassword', 'toggleConfirmPassword', 'eyeIcon2');
+
+      const form = document.getElementById('registerForm');
+      form.addEventListener('submit', function (e) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (password !== confirmPassword) {
+          e.preventDefault();
+          alert('Konfirmasi password tidak sama, silakan cek kembali.');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

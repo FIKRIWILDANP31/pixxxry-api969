@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Pixxxry API</title>
+  <meta name="description" content="Masuk ke dashboard Pixxxry API untuk mengelola layanan dan API Key Anda." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+  <style>
+    /* ════ RESET & TOKENS (Senada dengan Index & Register) ════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    
+    :root {
+      --ff: 'Outfit', system-ui, sans-serif;
+      --bg:      #f6f7f9;
+      --surface: #ffffff;
+      --bdr:     rgba(0,0,0,.08);
+      --bdr2:    rgba(0,0,0,.12);
+      --t1:      #0c0e12;
+      --t2:      #3b404f;
+      --t3:      #8590a3;
+      --acc:     #0c0e12;
+      --acc-fg:  #ffffff;
+      --ring:    rgba(12, 14, 18, 0.15);
+
+      --sh1: 0 1px 3px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.04);
+      --sh3: 0 16px 48px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.04);
+      --r1: 8px; --r2: 14px; --r3: 20px; --r4: 28px;
+      color-scheme: light;
+    }
+
+    html.dark {
+      --bg:      #080a0e;
+      --surface: #10121a;
+      --bdr:     rgba(255,255,255,.07);
+      --bdr2:    rgba(255,255,255,.11);
+      --t1:      #f2f3f6;
+      --t2:      #9ba3b8;
+      --t3:      #525970;
+      --acc:     #f2f3f6;
+      --acc-fg:  #080a0e;
+      --ring:    rgba(242, 243, 246, 0.15);
+
+      --sh1: 0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2);
+      --sh3: 0 16px 48px rgba(0,0,0,.44),0 4px 12px rgba(0,0,0,.24);
+      color-scheme: dark;
+    }
+
+    body {
+      font-family: var(--ff);
+      background: var(--bg);
+      color: var(--t1);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* Grid Background */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, var(--bdr) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--bdr) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+      -webkit-mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Nav Top */
+    .top-nav {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--t2);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: var(--r2);
+      background: var(--surface);
+      border: 1px solid var(--bdr2);
+      box-shadow: var(--sh1);
+      transition: all 0.2s;
+    }
+    .back-link:hover { background: var(--bg3); color: var(--t1); transform: translateY(-1px); }
+    .back-link:active { transform: scale(0.96); }
+
+    .theme-toggle {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--bdr2);
+      background: var(--surface);
+      color: var(--t2);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      box-shadow: var(--sh1);
+      transition: all 0.2s;
+    }
+    .theme-toggle:hover { background: var(--bg3); color: var(--t1); }
+    .theme-toggle:active { transform: scale(0.92); }
+
+    /* Auth Card */
+    .auth-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+      animation: fadeUp 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--bdr2);
+      border-radius: var(--r4);
+      box-shadow: var(--sh3);
+      padding: 40px 32px;
+    }
+
+    .auth-header { text-align: center; margin-bottom: 32px; }
+    
+    .auth-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px; height: 52px;
+      border-radius: var(--r2);
+      background: var(--surface);
+      border: 1px solid var(--bdr2);
+      box-shadow: var(--sh1);
+      margin-bottom: 20px;
+    }
+    .auth-logo img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+
+    .auth-title { font-size: 1.6rem; font-weight: 800; color: var(--t1); letter-spacing: -0.03em; line-height: 1.2; }
+    .auth-sub { font-size: 0.9rem; color: var(--t3); margin-top: 6px; }
+
+    /* Form Styles */
+    .form-group { margin-bottom: 20px; }
+    .form-group.flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .forgot-link {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--t2);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .forgot-link:hover { color: var(--t1); text-decoration: underline; }
+
+    .form-control {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: var(--t1);
+      background: var(--bg);
+      border: 1px solid var(--bdr2);
+      border-radius: var(--r2);
+      outline: none;
+      transition: all 0.2s;
+    }
+    .form-control::placeholder { color: var(--t3); }
+    .form-control:focus { background: var(--surface); border-color: var(--acc); box-shadow: 0 0 0 4px var(--ring); }
+
+    /* Cloudflare Turnstile Wrapper */
+    .cf-wrapper {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: center;
+      background: var(--bg);
+      padding: 10px;
+      border-radius: var(--r2);
+      border: 1px solid var(--bdr2);
+    }
+
+    /* Button */
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--acc-fg);
+      background: var(--acc);
+      border: none;
+      border-radius: var(--r2);
+      cursor: pointer;
+      box-shadow: var(--sh2);
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+    .btn-submit::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 50%; height: 100%;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.25), transparent);
+      transform: skewX(-20deg);
+      transition: all 0.6s ease;
+      z-index: -1;
+    }
+    .btn-submit:hover::after { left: 150%; }
+    .btn-submit:hover { opacity: 0.9; transform: translateY(-2px); }
+    .btn-submit:active { transform: scale(0.98) translateY(0); }
+
+    /* Footer Links */
+    .auth-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.88rem;
+      color: var(--t3);
+      font-weight: 500;
+    }
+    .auth-footer a {
+      color: var(--t1);
+      font-weight: 700;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .auth-footer a:hover { text-decoration: underline; }
+
+    /* Animation */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+
+  <div class="top-nav">
+    <a href="index.html" class="back-link">
+      <i class="fa-solid fa-arrow-left"></i> Kembali
+    </a>
+    <button class="theme-toggle" id="themeToggle" aria-label="Ganti Tema">
+      <i class="fa-solid fa-moon" id="themeIcon"></i>
+    </button>
+  </div>
+
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      
+      <div class="auth-header">
+        <a href="index.html" class="auth-logo">
+          <img src="https://g.top4top.io/p_3762bm1y70.jpg" alt="Logo" />
+        </a>
+        <h1 class="auth-title">Selamat Datang</h1>
+        <p class="auth-sub">Masuk ke dashboard untuk mengelola API Key.</p>
+      </div>
+
+      <form action="/dashboard.html" method="POST">
+        
+        <div class="form-group">
+          <label for="email" style="margin-bottom: 8px;">Alamat Email</label>
+          <input type="email" id="email" class="form-control" placeholder="nama@email.com" required />
+        </div>
+
+        <div class="form-group">
+          <div class="flex-between">
+            <label for="password" style="margin-bottom: 0;">Password</label>
+            <a href="#" class="forgot-link">Lupa Password?</a>
+          </div>
+          <input type="password" id="password" class="form-control" placeholder="••••••••" required />
+        </div>
+
+        <div class="cf-wrapper">
+          <div class="cf-turnstile" data-sitekey="1x00000000000000000000AA" data-theme="auto"></div>
+        </div>
+
+        <button type="submit" class="btn-submit">Masuk ke Dashboard</button>
+      </form>
+
+      <div class="auth-footer">
+        Belum punya akun? <a href="register.html">Daftar sekarang</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Logic Dark Mode
+    (function(){
+      const html = document.documentElement;
+      const thBtn = document.getElementById('themeToggle');
+      const thIco = document.getElementById('themeIcon');
+
+      function applyTheme(t) {
+        if(t === 'dark') { 
+          html.classList.add('dark'); 
+          thIco.className = 'fa-solid fa-sun'; 
+        } else { 
+          html.classList.remove('dark'); 
+          thIco.className = 'fa-solid fa-moon'; 
+        }
+      }
+
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      applyTheme(currentTheme);
+
+      thBtn.addEventListener('click', function() {
+        const next = html.classList.contains('dark') ? 'light' : 'dark';
+        localStorage.setItem('theme', next);
+        applyTheme(next);
+        
+        if(window.turnstile) {
+            window.turnstile.reset();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
